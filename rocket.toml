@@ -1,0 +1,2 @@
+[global.databases]
+homedb = {url = "./db/db.sqlite"}
