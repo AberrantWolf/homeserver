@@ -1,0 +1,5 @@
+-- Your SQL goes here
+CREATE TABLE logs (
+    id INTEGER NOT NULL PRIMARY KEY,
+    msg VARCHAR NOT NULL
+)

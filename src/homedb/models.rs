@@ -7,3 +7,9 @@ pub struct Post {
     pub body: String,
     pub published: bool,
 }
+
+#[derive(Queryable)]
+pub struct Log {
+    pub id: i32,
+    pub msg: String,
+}

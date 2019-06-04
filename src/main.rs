@@ -3,17 +3,23 @@
 extern crate rocket;
 #[macro_use]
 extern crate rocket_contrib;
+#[macro_use]
+extern crate diesel;
 
-mod homedb;
-
-use self::homedb::models::*;
+use diesel::prelude::*;
+use diesel::sqlite::SqliteConnection;
 
 use rocket::http::{Cookie, Cookies};
+// use rocket_contrib::databases::diesel;
 
-use rocket_contrib::databases::diesel;
+mod homedb;
+mod schema;
 
-#[database("sqlite_logs")]
-struct LogsDbConn(diesel::SqliteConnection);
+use self::homedb::models::Log;
+use schema::*;
+
+#[database("homedb")]
+struct LogsDbConn(SqliteConnection);
 
 #[get("/")]
 fn index(cookies: Cookies) -> String {
@@ -45,8 +51,16 @@ fn cookie(msg: String, mut cookies: Cookies) -> String {
     "Cookie message saved!".to_owned()
 }
 
+#[get("/logs/<log_id>")]
+fn get_logs(conn: LogsDbConn, log_id: usize) -> Result<Log> {
+    use schema::logs::dsl::*;
+    // logs.filter(id.eq(log_id)).load::<Log>(&conn)?
+    logs.first(&*conn)?
+}
+
 fn main() {
     rocket::ignite()
-        .mount("/", routes![index, hello, cookie])
+        .mount("/", routes![index, hello, cookie, get_logs])
+        .attach(LogsDbConn::fairing())
         .launch();
 }
