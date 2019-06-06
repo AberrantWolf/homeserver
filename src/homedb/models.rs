@@ -1,4 +1,5 @@
 use rocket_contrib::databases::diesel::Queryable;
+use crate::schema::logs;
 
 #[derive(Queryable)]
 pub struct Post {
@@ -12,4 +13,10 @@ pub struct Post {
 pub struct Log {
     pub id: i32,
     pub msg: String,
+}
+
+#[derive(Insertable)]
+#[table_name="logs"]
+pub struct NewLog<'a> {
+    pub msg: &'a str
 }

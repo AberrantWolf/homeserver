@@ -15,7 +15,7 @@ use rocket::http::{Cookie, Cookies};
 mod homedb;
 mod schema;
 
-use self::homedb::models::Log;
+use self::homedb::models::{Log, NewLog};
 use schema::*;
 
 #[database("homedb")]
@@ -52,15 +52,33 @@ fn cookie(msg: String, mut cookies: Cookies) -> String {
 }
 
 #[get("/logs/<log_id>")]
-fn get_logs(conn: LogsDbConn, log_id: usize) -> Result<Log> {
-    use schema::logs::dsl::*;
-    // logs.filter(id.eq(log_id)).load::<Log>(&conn)?
-    logs.first(&*conn)?
+fn get_logs(conn: LogsDbConn, log_id: i32) -> String {
+    use schema::logs::dsl::{id, logs};
+    let logs_list = logs.filter(id.eq(log_id)).load::<Log>(&*conn).expect("Unable to get logs or something");
+    if logs_list.len() < 1 {
+        return format!("No log found for id {}", log_id);
+    }
+    let log = logs_list.first().expect("There was no first");
+    format!("Message Found: {}", log.msg)
+}
+
+#[get("/logs/write/<msg>")]
+fn write_log(conn: LogsDbConn, msg: String) -> String {
+    use schema::logs::dsl::{logs};
+
+    let new_log = NewLog {msg: &msg};
+
+    let result = diesel::insert_into(logs).values(&new_log).execute(&*conn);
+
+    match result {
+        Ok(num) => format!("Created a log {}", num),
+        Err(err) => format!("Error {}", err),
+    }
 }
 
 fn main() {
     rocket::ignite()
-        .mount("/", routes![index, hello, cookie, get_logs])
+        .mount("/", routes![index, hello, cookie, get_logs, write_log])
         .attach(LogsDbConn::fairing())
         .launch();
 }
