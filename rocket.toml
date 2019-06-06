@@ -1,2 +1,5 @@
 [global.databases]
 homedb = {url = "./db/homedb.sqlite"}
+
+[development]
+template_dir = "templates/"

@@ -1,36 +1,47 @@
 #![feature(proc_macro_hygiene, decl_macro)]
 #[macro_use]
+extern crate diesel;
+#[macro_use]
 extern crate rocket;
 #[macro_use]
 extern crate rocket_contrib;
-#[macro_use]
-extern crate diesel;
+#[macro_use] extern crate serde_derive;
+extern crate serde_json;
 
 use diesel::prelude::*;
 use diesel::sqlite::SqliteConnection;
 
 use rocket::http::{Cookie, Cookies};
-// use rocket_contrib::databases::diesel;
+use rocket_contrib::templates::Template;
 
 mod homedb;
 mod schema;
 
 use self::homedb::models::{Log, NewLog};
-use schema::*;
 
 #[database("homedb")]
 struct LogsDbConn(SqliteConnection);
 
+#[derive(Serialize)]
+struct TemplateContext {
+    name: String,
+    items: Vec<&'static str>,
+    cookie_msg: String,
+}
+
 #[get("/")]
-fn index(cookies: Cookies) -> String {
+fn index(cookies: Cookies) -> Template {
     let message_cookie = cookies.get("message");
-    if let Some(ref message) = message_cookie {
+    let cookie_message = if let Some(ref message) = message_cookie {
         print!("Cookies: {:?}", cookies);
-        return format!("Message: {}", message.value());
+        format!("Message: {}", message.value())
     } else {
         print!("Cookies: {:?}", cookies);
-    }
-    "No message saved".to_owned()
+        "No cookie message".to_owned()
+    };
+
+    let context = TemplateContext { name: "Steve".to_owned(), items: vec!["A", "B", "3"], cookie_msg: cookie_message};
+    Template::render("index", &context)
 }
 
 #[get("/hello/<name>")]
@@ -80,5 +91,6 @@ fn main() {
     rocket::ignite()
         .mount("/", routes![index, hello, cookie, get_logs, write_log])
         .attach(LogsDbConn::fairing())
+        .attach(Template::fairing())
         .launch();
 }
