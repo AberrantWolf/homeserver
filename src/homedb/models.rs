@@ -1,4 +1,6 @@
 use rocket_contrib::databases::diesel::Queryable;
+use serde_derive::Serialize;
+
 use crate::schema::logs;
 
 #[derive(Queryable)]
@@ -9,7 +11,7 @@ pub struct Post {
     pub published: bool,
 }
 
-#[derive(Queryable)]
+#[derive(Queryable, Serialize)]
 pub struct Log {
     pub id: i32,
     pub msg: String,

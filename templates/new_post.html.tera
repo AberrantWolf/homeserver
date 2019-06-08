@@ -1,0 +1,12 @@
+{% extends "base" %}
+
+{% block content %}
+    <form action="/new_post" method="post">
+        <fieldset>
+            <legend>New Message</legend>
+            Message Text:<br/>
+            <input type="text" name="msg" value="New Message" /><br/>
+            <input type="submit" value="Submit" />
+        </fieldset>
+    </form>
+{% endblock content %}
