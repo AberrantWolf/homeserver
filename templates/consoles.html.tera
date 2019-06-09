@@ -2,14 +2,64 @@
 
 {% block content %}
 <h1>Game Consoles</h1>
-<div class="table">
-    {% for console in context %}
-    <form class="tr" id="{{}}" action="/new_post" method="post">
+<div class="table" id="consoles_table">
+    {% for console in consoles_list %}
+    <form class="tr" action="/update_console" method="post">
         <span class="td">{{console._id}}</span>
         <span class="td"><input type="text" name="short_name" value="{{console.short_name}}" /></span>
         <span class="td"><input type="text" name="long_name" value="{{console.long_name}}" /></span>
-        <span class="td"><input type="submit" value="Submit" /></span>
+        <span class="td"><input type="submit" value="Update" /></span>
     </form>
     {% endfor %}
+    {% if err_msg %}<div class="err">{{err_msg}}</div> {% endif %}
 </div>
+
+<button id="add_row" onclick="doAddRow()">push me</button>
+
+<script>
+function doAddRow() {
+    let add_row = document.createElement("form");
+    add_row.className = "tr";
+    add_row.action = "/add_console";
+    add_row.method = "post";
+
+    // id column
+    let id_col = document.createElement("span");
+    id_col.className = "td";
+    id_col.innerHTML = "New";
+
+    // short name column
+    let sname_col = document.createElement("span");
+    sname_col.className = "td";
+    let sname_input = document.createElement("input");
+    sname_input.type = "text";
+    sname_input.name = "short_name";
+    sname_col.appendChild(sname_input);
+
+    // long name column
+    let lname_col = document.createElement("span");
+    lname_col.className = "td";
+    let lname_input = document.createElement("input");
+    lname_input.type = "text";
+    lname_input.name = "long_name";
+    lname_col.appendChild(lname_input);
+
+    // submit button
+    let submit_col = document.createElement("span");
+    submit_col.className = "td";
+    let submit_btn = document.createElement("input");
+    submit_btn.type = "submit";
+    submit_btn.value = "Add";
+    submit_col.appendChild(submit_btn);
+
+    add_row.appendChild(id_col);
+    add_row.appendChild(sname_col);
+    add_row.appendChild(lname_col);
+    add_row.appendChild(submit_col);
+
+    let table_div = document.getElementById("consoles_table");
+    table_div.appendChild(add_row);
+}
+</script>
+
 {% endblock content %}

@@ -20,10 +20,10 @@ use rocket_contrib::templates::Template;
 mod homedb;
 mod schema;
 
-use self::homedb::models::{Log, NewLog};
+use self::homedb::models::{Console, Log, NewConsole, NewLog};
 
 #[database("homedb")]
-struct LogsDbConn(SqliteConnection);
+struct HomeDbConn(SqliteConnection);
 
 #[derive(Serialize)]
 struct NullContext {}
@@ -40,8 +40,20 @@ struct NewPostFormData {
     msg: String,
 }
 
+#[derive(Serialize)]
+struct ConsoleTemplateContext {
+    err_msg: Option<String>,
+    consoles_list: Vec<Console>,
+}
+
+#[derive(FromForm)]
+struct ConsoleFormData {
+    short_name: String,
+    long_name: String,
+}
+
 #[get("/")]
-fn index(conn: LogsDbConn, cookies: Cookies) -> Template {
+fn index(conn: HomeDbConn, cookies: Cookies) -> Template {
     let message_cookie = cookies.get("message");
     let cookie_message = if let Some(ref message) = message_cookie {
         print!("Cookies: {:?}", cookies);
@@ -59,7 +71,7 @@ fn index(conn: LogsDbConn, cookies: Cookies) -> Template {
 
     let context = TemplateContext {
         name: "Steve".to_owned(),
-        items: items,
+        items,
         cookie_msg: cookie_message,
     };
     Template::render("index", &context)
@@ -71,7 +83,7 @@ fn new_post_page() -> Template {
 }
 
 #[post("/new_post", data = "<form_data>")]
-fn make_new_post(conn: LogsDbConn, form_data: Form<NewPostFormData>) -> Redirect {
+fn make_new_post(conn: HomeDbConn, form_data: Form<NewPostFormData>) -> Redirect {
     use schema::logs::dsl::logs;
 
     let msg = &form_data.msg;
@@ -100,7 +112,7 @@ fn cookie(msg: String, mut cookies: Cookies) -> String {
 }
 
 #[get("/logs/<log_id>")]
-fn get_logs(conn: LogsDbConn, log_id: i32) -> String {
+fn get_logs(conn: HomeDbConn, log_id: i32) -> String {
     use schema::logs::dsl::{id, logs};
     let logs_list = logs
         .filter(id.eq(log_id))
@@ -114,7 +126,7 @@ fn get_logs(conn: LogsDbConn, log_id: i32) -> String {
 }
 
 #[get("/logs/write/<msg>")]
-fn write_log(conn: LogsDbConn, msg: String) -> String {
+fn write_log(conn: HomeDbConn, msg: String) -> String {
     use schema::logs::dsl::logs;
 
     let new_log = NewLog { msg: &msg };
@@ -124,6 +136,40 @@ fn write_log(conn: LogsDbConn, msg: String) -> String {
         Ok(num) => format!("Created a log {}", num),
         Err(err) => format!("Error {}", err),
     }
+}
+
+//------- RETRO DB ROUTES ----------
+// GAME CONSOLE
+#[get("/consoles")]
+fn list_consoles(conn: HomeDbConn) -> Template {
+    use schema::consoles::dsl::consoles;
+
+    let consoles_list_result = consoles.load::<Console>(&*conn);
+    let (err_msg, consoles_list) = match consoles_list_result {
+        Ok(list) => (None, list),
+        Err(e) => (Some("Unable to get consoles list :(".to_owned()), vec![]),
+    };
+
+    let context = ConsoleTemplateContext {
+        err_msg,
+        consoles_list,
+    };
+    Template::render("consoles", context)
+}
+
+#[post("/add_console", data = "<form_data>")]
+fn add_console(conn: HomeDbConn, form_data: Form<ConsoleFormData>) -> Redirect {
+    use schema::consoles::dsl::consoles;
+
+    let new_console = NewConsole {
+        short_name: &form_data.short_name,
+        long_name: &form_data.long_name,
+    };
+    let _result = diesel::insert_into(consoles)
+        .values(&new_console)
+        .execute(&*conn);
+
+    Redirect::to("/consoles")
 }
 
 fn main() {
@@ -137,10 +183,12 @@ fn main() {
                 get_logs,
                 write_log,
                 new_post_page,
-                make_new_post
+                make_new_post,
+                list_consoles,
+                add_console,
             ],
         )
-        .attach(LogsDbConn::fairing())
+        .attach(HomeDbConn::fairing())
         .attach(Template::fairing())
         .launch();
 }
