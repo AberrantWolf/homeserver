@@ -1,4 +1,4 @@
-use rocket_contrib::databases::diesel::Queryable;
+use rocket_contrib::databases::diesel::{AsChangeset, Insertable, Queryable};
 use serde_derive::Serialize;
 
 use crate::schema::{consoles, logs};
@@ -24,17 +24,3 @@ pub struct NewLog<'a> {
 }
 
 // Consoles
-
-#[derive(Queryable, Serialize)]
-pub struct Console {
-    pub _id: i32,
-    pub short_name: String,
-    pub long_name: String,
-}
-
-#[derive(Insertable)]
-#[table_name = "consoles"]
-pub struct NewConsole<'a> {
-    pub short_name: &'a str,
-    pub long_name: &'a str,
-}

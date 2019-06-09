@@ -10,7 +10,6 @@ extern crate serde_derive;
 extern crate serde_json;
 
 use diesel::prelude::*;
-use diesel::sqlite::SqliteConnection;
 
 use rocket::http::{Cookie, Cookies};
 use rocket::request::Form;
@@ -20,10 +19,8 @@ use rocket_contrib::templates::Template;
 mod homedb;
 mod schema;
 
-use self::homedb::models::{Console, Log, NewConsole, NewLog};
-
-#[database("homedb")]
-struct HomeDbConn(SqliteConnection);
+use self::homedb::models::{Log, NewLog};
+use homedb::HomeDbConn;
 
 #[derive(Serialize)]
 struct NullContext {}
@@ -38,18 +35,6 @@ struct TemplateContext {
 #[derive(FromForm)]
 struct NewPostFormData {
     msg: String,
-}
-
-#[derive(Serialize)]
-struct ConsoleTemplateContext {
-    err_msg: Option<String>,
-    consoles_list: Vec<Console>,
-}
-
-#[derive(FromForm)]
-struct ConsoleFormData {
-    short_name: String,
-    long_name: String,
 }
 
 #[get("/")]
@@ -140,37 +125,6 @@ fn write_log(conn: HomeDbConn, msg: String) -> String {
 
 //------- RETRO DB ROUTES ----------
 // GAME CONSOLE
-#[get("/consoles")]
-fn list_consoles(conn: HomeDbConn) -> Template {
-    use schema::consoles::dsl::consoles;
-
-    let consoles_list_result = consoles.load::<Console>(&*conn);
-    let (err_msg, consoles_list) = match consoles_list_result {
-        Ok(list) => (None, list),
-        Err(e) => (Some("Unable to get consoles list :(".to_owned()), vec![]),
-    };
-
-    let context = ConsoleTemplateContext {
-        err_msg,
-        consoles_list,
-    };
-    Template::render("consoles", context)
-}
-
-#[post("/add_console", data = "<form_data>")]
-fn add_console(conn: HomeDbConn, form_data: Form<ConsoleFormData>) -> Redirect {
-    use schema::consoles::dsl::consoles;
-
-    let new_console = NewConsole {
-        short_name: &form_data.short_name,
-        long_name: &form_data.long_name,
-    };
-    let _result = diesel::insert_into(consoles)
-        .values(&new_console)
-        .execute(&*conn);
-
-    Redirect::to("/consoles")
-}
 
 fn main() {
     rocket::ignite()
@@ -184,8 +138,10 @@ fn main() {
                 write_log,
                 new_post_page,
                 make_new_post,
-                list_consoles,
-                add_console,
+                homedb::consoles::list_consoles,
+                homedb::consoles::add_console,
+                homedb::consoles::update_console,
+                homedb::consoles::delete_console,
             ],
         )
         .attach(HomeDbConn::fairing())
