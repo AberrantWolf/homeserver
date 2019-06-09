@@ -1,0 +1,15 @@
+{% extends "base" %}
+
+{% block content %}
+<h1>Game Consoles</h1>
+<div class="table">
+    {% for console in context %}
+    <form class="tr" id="{{}}" action="/new_post" method="post">
+        <span class="td">{{console._id}}</span>
+        <span class="td"><input type="text" name="short_name" value="{{console.short_name}}" /></span>
+        <span class="td"><input type="text" name="long_name" value="{{console.long_name}}" /></span>
+        <span class="td"><input type="submit" value="Submit" /></span>
+    </form>
+    {% endfor %}
+</div>
+{% endblock content %}
