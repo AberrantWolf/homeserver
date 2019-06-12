@@ -142,6 +142,10 @@ fn main() {
                 homedb::consoles::add_console,
                 homedb::consoles::update_console,
                 homedb::consoles::delete_console,
+                homedb::genres::list_genres,
+                homedb::genres::add_genre,
+                homedb::genres::update_genre,
+                homedb::genres::delete_genre,
             ],
         )
         .attach(HomeDbConn::fairing())

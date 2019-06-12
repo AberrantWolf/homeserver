@@ -5,5 +5,6 @@ use diesel::sqlite::SqliteConnection;
 #[database("homedb")]
 pub struct HomeDbConn(SqliteConnection);
 
-pub mod models;
 pub mod consoles;
+pub mod genres;
+pub mod models;
