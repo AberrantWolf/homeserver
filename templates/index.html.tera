@@ -2,20 +2,6 @@
 
 {% block content %}
     <h1>Hi {{name}}</h1>
-    <h3>Here are your items:</h3>
-    <table>
-        <tr>
-            <th>Id</th>
-            <th>Message</th>
-        </tr>
-        {% for s in items %}
-        <tr>
-            <td>{{ s.id }}</td>
-            <td>{{ s.msg }}</td>
-        </tr>
-        {% endfor %}
-    </table>
-    <br>
     For new posts: <a href="/new_post">/new_post</a>
     <br>
     Your cookie message is: {{ cookie_msg }}

@@ -44,7 +44,7 @@ pub fn list_genres(conn: HomeDbConn) -> Template {
     let genres_list_result = genres.load::<Genre>(&*conn);
     let (err_msg, genres_list) = match genres_list_result {
         Ok(list) => (None, list),
-        Err(e) => (Some("Unable to get genres list :(".to_owned()), vec![]),
+        Err(_e) => (Some("Unable to get genres list :(".to_owned()), vec![]),
     };
 
     let context = GenresTemplateContext {

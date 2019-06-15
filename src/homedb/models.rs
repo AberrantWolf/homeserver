@@ -1,7 +1,7 @@
-use rocket_contrib::databases::diesel::{AsChangeset, Insertable, Queryable};
+use rocket_contrib::databases::diesel::{Insertable, Queryable};
 use serde_derive::Serialize;
 
-use crate::schema::{consoles, logs};
+use crate::schema::logs;
 
 #[derive(Queryable)]
 pub struct Post {

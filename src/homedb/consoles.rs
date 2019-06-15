@@ -1,4 +1,5 @@
 use rocket;
+use rocket::get;
 use rocket::request::Form;
 use rocket::response::Redirect;
 use rocket_contrib;
@@ -47,7 +48,7 @@ pub fn list_consoles(conn: HomeDbConn) -> Template {
     let consoles_list_result = consoles.load::<Console>(&*conn);
     let (err_msg, consoles_list) = match consoles_list_result {
         Ok(list) => (None, list),
-        Err(e) => (Some("Unable to get consoles list :(".to_owned()), vec![]),
+        Err(_e) => (Some("Unable to get consoles list :(".to_owned()), vec![]),
     };
 
     let context = ConsoleTemplateContext {

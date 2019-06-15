@@ -1,6 +1,5 @@
-#![feature(proc_macro_hygiene, decl_macro)]
-
 use diesel::sqlite::SqliteConnection;
+use rocket_contrib::database;
 
 #[database("homedb")]
 pub struct HomeDbConn(SqliteConnection);
