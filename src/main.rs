@@ -9,8 +9,10 @@ extern crate serde_derive;
 extern crate serde_json;
 
 use diesel::prelude::*;
+use std::error::Error;
 
 use rocket::http::{Cookie, Cookies};
+use rocket_contrib::serve::StaticFiles;
 use rocket_contrib::templates::Template;
 
 mod homedb;
@@ -66,7 +68,13 @@ fn cookie(msg: String, mut cookies: Cookies) -> String {
 //------- RETRO DB ROUTES ----------
 // GAME CONSOLE
 
-fn main() {
+fn main() -> Result<(), Box<Error>> {
+    {
+        use std::env;
+
+        let path = env::current_dir()?;
+        println!("The current directory is {}", path.display());
+    }
     rocket::ignite()
         .mount(
             "/",
@@ -88,7 +96,12 @@ fn main() {
                 homedb::genres::delete_genre,
             ],
         )
+        .mount(
+            "/js",
+            StaticFiles::from(concat!(env!("CARGO_MANIFEST_DIR"), "/static/js")),
+        )
         .attach(HomeDbConn::fairing())
         .attach(Template::fairing())
         .launch();
+    Ok(())
 }

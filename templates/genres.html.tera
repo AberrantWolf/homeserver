@@ -14,40 +14,8 @@
     {% if err_msg %}<div class="err">{{err_msg}}</div> {% endif %}
 </div>
 
-<button id="add_row" onclick="doAddRow()">touch me</button>
+<button id="add_row" onclick="doAddRow('/add_genre', [['genre', 'text']], 'genres_table')">touch me</button>
 
-<script>
-function createInputColumn(name, type, use_value) {
-    let col = document.createElement("span");
-    col.className = "td";
-    let input = document.createElement("input");
-    input.type = type;
-    if (use_value !== true) {
-        input.name = name;
-    } else {
-        input.value = name;
-    }
-    col.appendChild(input);
-
-    return col;
-}
-
-function doAddRow() {
-    let add_row = document.createElement("form");
-    add_row.className = "tr";
-    add_row.action = "/add_genre";
-    add_row.method = "post";
-
-    let genre_col = createInputColumn("genre", "text");
-    let submit_col = createInputColumn("Add", "submit", true);
-
-    // add_row.appendChild(id_col);
-    add_row.appendChild(genre_col);
-    add_row.appendChild(submit_col);
-
-    let table_div = document.getElementById("genres_table");
-    table_div.appendChild(add_row);
-}
-</script>
+<script src="js/db_helpers.js"></script>
 
 {% endblock content %}
